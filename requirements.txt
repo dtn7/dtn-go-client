@@ -1,0 +1,4 @@
+requests
+python-rapidjson
+black
+pre-commit
