@@ -269,7 +269,7 @@ def _cli_no_command(rest_url: str, args: argparse.Namespace) -> None:
     sys.exit(1)
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(description="Interact with dtnd")
     parser.add_argument(
         "-a", "--address", default="localhost", help="Address of the REST-Agent"
@@ -324,3 +324,7 @@ if __name__ == "__main__":
     rest_url = build_url(address=args.address, port=args.port)
 
     args.func(rest_url=rest_url, args=args)
+
+
+if __name__ == "__main__":
+    main()
