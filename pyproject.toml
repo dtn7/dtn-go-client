@@ -1,28 +1,35 @@
-[tool.pdm]
-[tool.pdm.dev-dependencies]
-lint = [
-    "black>=22.12.0",
-    "pre-commit>=2.21.0",
-]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "dtnclient"
 version = "0.1"
 description = "Python client for dtn7-go"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "GPLv3+"}
+dependencies = [
+    "python-rapidjson",
+    "requests"
+]
 authors = [
     {name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de"},
 ]
-dependencies = ["python-rapidjson", "requests"]
-requires-python = ">=3.10"
-readme = "README.md"
-license = {text = "GPLv3+"}
+maintainers = [
+  {name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de"}
+]
 keywords = ["dtn bundle"]
 classifiers = [
     "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)  ",
+
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.urls]
@@ -32,7 +39,3 @@ Source = "https://github.com/CryptoCopter/dtnclient"
 
 [project.scripts]
 dtnclient = "dtnclient.dtnclient:main"
-
-[build-system]
-requires = ["pdm-pep517>=1.0.0"]
-build-backend = "pdm.pep517.api"
