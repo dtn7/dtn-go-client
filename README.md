@@ -1,7 +1,9 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+# Deprecation Notice
 
-# Easy, straightforward interaction with [dtnd](https://github.com/dtn7/dtn7-go)
+This software is no longer maintained, please use the `dtnclient` from the [dtn7-go repository](https://github.com/dtn7/dtn7-go/tree/main/cmd/dtnclient)
 
-Interact with the REST-Applicaiton agent of `dtn7.
+## Easy, straightforward interaction with [dtnd](https://github.com/dtn7/dtn7-go)
 
-Note, that you first need to register with the ApplicationAgent before you can do anything`
+Interact with the REST-Applicaiton agent of `dtn7`.
+
+Note, that you first need to register with the ApplicationAgent before you can do anything
