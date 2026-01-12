@@ -7,29 +7,36 @@ name = "dtnclient"
 version = "0.1"
 description = "Python client for dtn7-go"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 license = {text = "GPLv3+"}
-dependencies = [
-    "python-rapidjson",
-    "requests"
-]
 authors = [
     {name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de"},
 ]
 maintainers = [
   {name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de"}
 ]
-keywords = ["dtn bundle"]
+keywords = ["dtn bundle_protocol"]
 classifiers = [
     "Development Status :: 4 - Beta",
 
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+dependencies = [
+    "python-rapidjson",
+    "requests"
+]
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "hatchling",
+]
+lint = [
+    "black",
+    "isort",
 ]
 
 [project.urls]
