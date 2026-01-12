@@ -10,7 +10,8 @@ readme = "README.md"
 requires-python = ">=3.14"
 license = "MIT"
 authors = [
-    {name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de"},
+    { name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de" },
+    { name = "Leon Wimbes", email = "wimbes@students.uni-marburg.de" },
 ]
 maintainers = [
   {name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de"}
