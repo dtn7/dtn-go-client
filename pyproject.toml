@@ -41,9 +41,9 @@ lint = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/CryptoCopter/dtnclient"
-"Bug Reports" = "https://github.com/CryptoCopter/dtnclient/issues"
-Source = "https://github.com/CryptoCopter/dtnclient"
+Homepage = "https://github.com/dtn7/dtn-go-client"
+"Bug Reports" = "https://github.com/dtn7/dtn-go-client/issues"
+Source = "https://github.com/dtn7/dtn-go-client/dtnclient"
 
 [project.scripts]
-dtnclient = "dtnclient.dtnclient:main"
+dtnclient = "dtnclient.cli:main"

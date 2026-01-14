@@ -10,16 +10,9 @@ from ormsgpack import packb, unpackb
 
 from dtnclient.eid import EID
 
-# (2^64)-1
-MSGPACK_MAXINT = 18446744073709551615
-
 
 class InvalidMessageError(ValueError):
     """Raised when a message is malformed"""
-
-
-class InvalidBundleError(ValueError):
-    """Raised when a bundle is malformed"""
 
 
 class MessageType(IntEnum):
@@ -38,7 +31,7 @@ class MessageType(IntEnum):
 
 @dataclass(frozen=True)
 class Message:
-    type: MessageType
+    Type: MessageType
 
     def dictify(self) -> dict:
         return self.__dict__
@@ -53,9 +46,9 @@ class Response(Message):
     Error: str
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.Response:
+        if self.Type != MessageType.Response:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.Response}, but has {self.type}"
+                f"Message needs MessageType {MessageType.Response}, but has {self.Type}"
             )
 
     @override
@@ -75,11 +68,11 @@ class RegisterUnregister(Message):
 
     def __post_init__(self) -> None:
         if (
-            self.type != MessageType.RegisterEID
-            and self.type != MessageType.UnregisterEID
+            self.Type != MessageType.RegisterEID
+            and self.Type != MessageType.UnregisterEID
         ):
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.RegisterEID} or {MessageType.UnregisterEID}, but has {self.type}"
+                f"Message needs MessageType {MessageType.RegisterEID} or {MessageType.UnregisterEID}, but has {self.Type}"
             )
         if not self.EndpointID:
             raise InvalidMessageError("EndpointID must not be none/empty")
@@ -100,9 +93,9 @@ class BundleCreate(Message):
     Args: dict[str, Any]
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.BundleCreate:
+        if self.Type != MessageType.BundleCreate:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.BundleCreate}, but has {self.type}"
+                f"Message needs MessageType {MessageType.BundleCreate}, but has {self.Type}"
             )
         if not self.Args:
             raise InvalidMessageError("Args must not be empty")
@@ -123,9 +116,9 @@ class BundleCreateResponse(Response):
     BundleID: str
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.BundleCreateResponse:
+        if self.Type != MessageType.BundleCreateResponse:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.BundleCreateResponse}, but has {self.type}"
+                f"Message needs MessageType {MessageType.BundleCreateResponse}, but has {self.Type}"
             )
         if not self.BundleID:
             raise InvalidMessageError("BundleID must not be empty")
@@ -147,9 +140,9 @@ class ListBundles(Message):
     New: bool
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.ListBundles:
+        if self.Type != MessageType.ListBundles:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.ListBundles}, but has {self.type}"
+                f"Message needs MessageType {MessageType.ListBundles}, but has {self.Type}"
             )
         if not self.Mailbox:
             raise InvalidMessageError("Mailbox must not be none/empty")
@@ -171,9 +164,9 @@ class ListResponse(Response):
     Bundles: list[str]
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.ListResponse:
+        if self.Type != MessageType.ListResponse:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.ListResponse}, but has {self.type}"
+                f"Message needs MessageType {MessageType.ListResponse}, but has {self.Type}"
             )
 
     @override
@@ -194,9 +187,9 @@ class FetchBundle(Message):
     Remove: bool
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.FetchBundle:
+        if self.Type != MessageType.FetchBundle:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.FetchBundle}, but has {self.type}"
+                f"Message needs MessageType {MessageType.FetchBundle}, but has {self.Type}"
             )
         if not self.Mailbox:
             raise InvalidMessageError("Mailbox must not be none/empty")
@@ -220,9 +213,9 @@ class FetchBundleResponse(Response):
     BundleContent: BundleContent
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.FetchBundleResponse:
+        if self.Type != MessageType.FetchBundleResponse:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.FetchBundleResponse}, but has {self.type}"
+                f"Message needs MessageType {MessageType.FetchBundleResponse}, but has {self.Type}"
             )
 
     @override
@@ -244,9 +237,9 @@ class FetchAllBundles(Message):
     Remove: bool
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.FetchAllBundles:
+        if self.Type != MessageType.FetchAllBundles:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.FetchAllBundles}, but has {self.type}"
+                f"Message needs MessageType {MessageType.FetchAllBundles}, but has {self.Type}"
             )
         if not self.Mailbox:
             raise InvalidMessageError("Mailbox must not be none/empty")
@@ -268,9 +261,9 @@ class FetchAllBundlesResponse(Response):
     Bundles: list[BundleContent]
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.FetchAllBundlesResponse:
+        if self.Type != MessageType.FetchAllBundlesResponse:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.FetchAllBundlesResponse}, but has {self.type}"
+                f"Message needs MessageType {MessageType.FetchAllBundlesResponse}, but has {self.Type}"
             )
 
     @override
@@ -310,6 +303,19 @@ class BundleContent:
 
 
 def serialize(message: Message) -> bytes:
+    """
+    Serializes message for transmission
+
+    Args:
+        message: Message to be serialized
+
+    Returns:
+        Bytes of serialized message
+
+    Raises:
+        ormsgpack.MsgpackEncodeError: if message is not serializable
+    """
+
     data = message.dictify()
     return packb(data)
 
@@ -330,32 +336,33 @@ MESSAGE_CONSTRUCTORS: dict[MessageType, Callable[[dict], Message]] = {
 
 
 def deserialize(serialized: bytes) -> Message:
+    """
+    Deserializes bytes into a message object
+
+    Args:
+        serialized: Message in serialized form
+
+    Returns:
+        Deserialized message - will be a subclass of Message
+
+    Raises:
+        ormsgpack.MsgpackDecodeError: if the object is of an invalid type or is not valid MessagePack
+        InvalidMessageError: if deserialized message has no "Type" field
+        InvalidMessageError: if deserialized message has the "Type" field, but the contained value is unknown/we don't know the corresponding message format
+        InvalidMessageError: if sanity-checks for the deserialized message fail
+    """
+
+    data_dict: dict = unpackb(serialized)
+
+    if "Type" not in data_dict:
+        raise InvalidMessageError("Message missing 'Type' field")
+
     try:
-        data_dict: dict = unpackb(serialized)
+        msg_type = MessageType(data_dict["Type"])
+    except ValueError:
+        raise InvalidMessageError(f"Unknown MessageType ID: {data_dict['Type']}")
 
-        if "type" not in data_dict:
-            raise InvalidMessageError("Message missing 'type' field")
+    if msg_type not in MESSAGE_CONSTRUCTORS:
+        raise InvalidMessageError(f"No constructor defined for {msg_type}")
 
-        try:
-            msg_type = MessageType(data_dict["type"])
-        except ValueError:
-            raise InvalidMessageError(f"Unknown MessageType ID: {data_dict['type']}")
-
-        if msg_type not in MESSAGE_CONSTRUCTORS:
-            raise InvalidMessageError(f"No constructor defined for {msg_type}")
-
-        return MESSAGE_CONSTRUCTORS[msg_type](data_dict)
-
-    except Exception as err:
-        # Write the serialized data to a temp file for debugging
-        prefix = "dtnclient_msg_dump_"
-
-        with tempfile.NamedTemporaryFile(
-            delete=False, prefix=prefix, suffix=".bin"
-        ) as tmp_file:
-            tmp_file.write(serialized)
-            tmp_filename = tmp_file.name
-
-        raise InvalidMessageError(
-            f"Deserialization failed: {err}. Raw data dumped to {tmp_filename}"
-        ) from err
+    return MESSAGE_CONSTRUCTORS[msg_type](data_dict)
