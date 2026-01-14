@@ -23,7 +23,7 @@ class InvalidBundleError(ValueError):
 
 
 class MessageType(IntEnum):
-    GeneralResponse = 1
+    Response = 1
     RegisterEID = 2
     UnregisterEID = 3
     BundleCreate = 4
@@ -49,13 +49,13 @@ class Message:
 
 
 @dataclass(frozen=True)
-class GeneralResponse(Message):
+class Response(Message):
     Error: str
 
     def __post_init__(self) -> None:
-        if self.type != MessageType.GeneralResponse:
+        if self.type != MessageType.Response:
             raise InvalidMessageError(
-                f"Message needs MessageType {MessageType.GeneralResponse}, but has {self.type}"
+                f"Message needs MessageType {MessageType.Response}, but has {self.type}"
             )
 
     @override
@@ -65,7 +65,7 @@ class GeneralResponse(Message):
         return parent_dict | own_dict
 
     @classmethod
-    def from_dict(cls, data) -> GeneralResponse:
+    def from_dict(cls, data) -> Response:
         return cls(**data)
 
 
@@ -119,7 +119,7 @@ class BundleCreate(Message):
 
 
 @dataclass(frozen=True)
-class BundleCreateResponse(GeneralResponse):
+class BundleCreateResponse(Response):
     BundleID: str
 
     def __post_init__(self) -> None:
@@ -167,7 +167,7 @@ class ListBundles(Message):
 
 
 @dataclass(frozen=True)
-class ListResponse(GeneralResponse):
+class ListResponse(Response):
     Bundles: list[str]
 
     def __post_init__(self) -> None:
@@ -216,7 +216,7 @@ class FetchBundle(Message):
 
 
 @dataclass(frozen=True)
-class FetchBundleResponse(GeneralResponse):
+class FetchBundleResponse(Response):
     BundleContent: BundleContent
 
     def __post_init__(self) -> None:
@@ -264,7 +264,7 @@ class FetchAllBundles(Message):
 
 
 @dataclass(frozen=True)
-class FetchAllBundlesResponse(GeneralResponse):
+class FetchAllBundlesResponse(Response):
     Bundles: list[BundleContent]
 
     def __post_init__(self) -> None:
@@ -315,7 +315,7 @@ def serialize(message: Message) -> bytes:
 
 
 MESSAGE_CONSTRUCTORS: dict[MessageType, Callable[[dict], Message]] = {
-    MessageType.GeneralResponse: GeneralResponse.from_dict,
+    MessageType.Response: Response.from_dict,
     MessageType.RegisterEID: RegisterUnregister.from_dict,
     MessageType.UnregisterEID: RegisterUnregister.from_dict,
     MessageType.BundleCreate: BundleCreate.from_dict,
