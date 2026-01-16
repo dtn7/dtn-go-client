@@ -106,3 +106,33 @@ def register_unregister(socket_path: str, eid: EID, register: bool = True) -> No
         logging.info("Successfully registered with dtnd")
     else:
         logging.info("Successfully unregistered with dtnd")
+
+
+def create_bundle(socket_path: str, args: dict[str, Any]) -> str:
+    """
+    Creates a new bundle
+
+    Args:
+        socket_path: Path to dtnd's UNIX-application-agent-socket
+        args: Dictionary containing arguments for bundle creation (see: https://github.com/dtn7/dtn7-go/blob/main/pkg/bpv7/bundle_builder.go method `BuildFromMap` for argument names/meanings
+
+    Returns:
+        BundleID (as string) of the newly created bundle
+
+    Raises:
+        FileNotFoundError: if socket_path does not resolve
+        DataError: if data received from dtnd is inconsistent
+        DTNDError: if dtnd's response indicated an error
+    """
+    message = BundleCreate(Type=MessageType.BundleCreate, Args=args)
+
+    response = send_message(socket_path=socket_path, message=message)
+
+    if response.Error:
+        raise DTNDError(response.Error)
+    if not isinstance(response, BundleCreateResponse):
+        raise DataError(
+            f"response should have been BundleCreateResponse, was {type(response)}"
+        )
+
+    return response.BundleID
