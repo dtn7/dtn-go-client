@@ -31,6 +31,8 @@ def send_message(socket_path: str, message: Message) -> Response:
     with socket(AF_UNIX, SOCK_STREAM) as s:
         s.connect(socket_path)
 
+        logging.debug(f"Sending message: {message}")
+
         ## serialize message
         message_bytes = serialize(message=message)
         message_length = len(message_bytes)
@@ -94,11 +96,13 @@ def register_unregister(socket_path: str, eid: EID, register: bool = True) -> No
         operation = MessageType.UnregisterEID
 
     message = RegisterUnregister(Type=operation, EndpointID=eid)
-    logging.debug(f"Sending (un)registration message: {message}")
 
     response = send_message(socket_path=socket_path, message=message)
 
     if response.Error:
         raise DTNDError(response.Error)
 
-    logging.info("Successfully (un)registered with dtnd")
+    if register:
+        logging.info("Successfully registered with dtnd")
+    else:
+        logging.info("Successfully unregistered with dtnd")

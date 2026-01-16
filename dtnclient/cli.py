@@ -3,17 +3,22 @@
 import argparse
 import logging
 import sys
+from dataclasses import dataclass
 
 from dtnclient.client import DataError, DTNDError, register_unregister
 from dtnclient.eid import EID
 
 
+@dataclass(frozen=True)
+class MaxLevelFilter(logging.Filter):
+    max_level: int
+
+    def filter(self, record: logging.LogRecord):
+        return record.levelno <= self.max_level
+
+
 def _cli_no_command(_: argparse.Namespace) -> None:
-    print(
-        "Must choose a command",
-        file=sys.stderr,
-        flush=True,
-    )
+    logging.error("Must choose a command")
     sys.exit(1)
 
 
@@ -67,7 +72,25 @@ def main() -> None:
     args = parser.parse_args()
 
     log_level = logging.DEBUG if args.v else logging.INFO
-    logging.basicConfig(level=log_level)
+
+    logger = logging.getLogger()
+    logger.setLevel(log_level)
+
+    # Handler for DEBUG, INFO, WARNING  -> stdout
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.DEBUG)
+    stdout_handler.addFilter(MaxLevelFilter(logging.WARNING))
+
+    # Handler for ERROR, CRITICAL       -> stderr
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.ERROR)
+
+    fmt = logging.Formatter("%(message)s")
+    stdout_handler.setFormatter(fmt)
+    stderr_handler.setFormatter(fmt)
+
+    logger.addHandler(stdout_handler)
+    logger.addHandler(stderr_handler)
 
     args.run(args)
 
