@@ -6,7 +6,13 @@ import sys
 from dataclasses import dataclass
 from typing import Any
 
-from dtnclient.client import DataError, DTNDError, create_bundle, register_unregister
+from dtnclient.client import (
+    DataError,
+    DTNDError,
+    create_bundle,
+    list_bundles,
+    register_unregister,
+)
 from dtnclient.eid import EID
 
 
@@ -86,6 +92,26 @@ def _cli_create(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cli_list(args: argparse.Namespace) -> None:
+    try:
+        bundles = list_bundles(
+            socket_path=args.socket, mailbox=args.mailbox, new_only=args.new
+        )
+        logging.info(bundles)
+    except FileNotFoundError:
+        logging.error("Could not connect to agent socket")
+        sys.exit(1)
+    except DataError as err:
+        logging.error(f"Error communicating with dtnd: {err}")
+        sys.exit(1)
+    except DTNDError as err:
+        logging.error(f"dtnd responded with error: {err}")
+        sys.exit(1)
+    except Exception as err:
+        logging.error(f"Generic error: {err}")
+        sys.exit(1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Interact with dtnd")
 
@@ -149,6 +175,17 @@ def main() -> None:
         required=False,
         default="stdin",
         help="Bundle's payload, either a filename to read or 'stdin'",
+    )
+
+    list_parser = subparsers.add_parser(
+        name="list", help="List bundles stored in a mailbox"
+    )
+    list_parser.set_defaults(run=_cli_list)
+    list_parser.add_argument(
+        "mailbox", type=EID, help="EndpointID of the mailbox that we want to check"
+    )
+    list_parser.add_argument(
+        "-n", "--new", action="store_true", help="Only list new bundles"
     )
 
     args = parser.parse_args()

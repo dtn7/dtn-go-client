@@ -136,3 +136,32 @@ def create_bundle(socket_path: str, args: dict[str, Any]) -> str:
         )
 
     return response.BundleID
+
+
+def list_bundles(socket_path: str, mailbox: EID, new_only: bool = False) -> list[str]:
+    """
+    Lists all bundles stored in a mailbox
+
+    Args:
+        socket_path: Path to dtnd's UNIX-application-agent-socket
+        mailbox: EndpointID of the mailbox that we want to check
+        new_only: Whether we want to list all bundles, or only 'new' ones (a bundle is new if it hasn't been fetched before)
+
+    Returns:
+        List of bundle-IDs of stored bundles
+
+    Raises:
+        FileNotFoundError: if socket_path does not resolve
+        DataError: if data received from dtnd is inconsistent
+        DTNDError: if dtnd's response indicated an error
+    """
+    message = ListBundles(Type=MessageType.ListBundles, Mailbox=mailbox, New=new_only)
+
+    response = send_message(socket_path=socket_path, message=message)
+
+    if response.Error:
+        raise DTNDError(response.Error)
+    if not isinstance(response, ListResponse):
+        raise DataError(f"response should have been ListResponse, was {type(response)}")
+
+    return response.Bundles
