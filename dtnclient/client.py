@@ -89,10 +89,10 @@ def register_unregister(socket_path: str, eid: EID, register: bool = True) -> No
 
     operation: MessageType
     if register:
-        logging.info("Performing registration")
+        logging.debug("Performing registration")
         operation = MessageType.RegisterEID
     else:
-        logging.info("Performing unregistration")
+        logging.debug("Performing unregistration")
         operation = MessageType.UnregisterEID
 
     message = RegisterUnregister(Type=operation, EndpointID=eid)
@@ -103,9 +103,9 @@ def register_unregister(socket_path: str, eid: EID, register: bool = True) -> No
         raise DTNDError(response.Error)
 
     if register:
-        logging.info("Successfully registered with dtnd")
+        logging.debug("Successfully registered with dtnd")
     else:
-        logging.info("Successfully unregistered with dtnd")
+        logging.debug("Successfully unregistered with dtnd")
 
 
 def create_bundle(socket_path: str, args: dict[str, Any]) -> str:
@@ -165,3 +165,39 @@ def list_bundles(socket_path: str, mailbox: EID, new_only: bool = False) -> list
         raise DataError(f"response should have been ListResponse, was {type(response)}")
 
     return response.Bundles
+
+
+def fetch_bundle(
+    socket_path: str, mailbox: EID, bundle_id: str, delete: bool = False
+) -> BundleContent:
+    """
+    Fetch one specific bundle fy its ID
+
+    Args:
+        socket_path: Path to dtnd's UNIX-application-agent-socket
+        mailbox: EndpointID of the mailbox that contains the bundle
+        bundle_id: String-representation of the bundle's ID
+        delete: Whether the bundle should be deleted after fetching
+
+    Returns:
+        BundleContent-object representing the bundle
+
+    Raises:
+        FileNotFoundError: if socket_path does not resolve
+        DataError: if data received from dtnd is inconsistent
+        DTNDError: if dtnd's response indicated an error
+    """
+    message = FetchBundle(
+        Type=MessageType.FetchBundle, Mailbox=mailbox, BundleID=bundle_id, Remove=delete
+    )
+
+    response = send_message(socket_path=socket_path, message=message)
+
+    if response.Error:
+        raise DTNDError(response.Error)
+    if not isinstance(response, FetchBundleResponse):
+        raise DataError(
+            f"response should have been FetchBundleResponse, was {type(response)}"
+        )
+
+    return response.BundleContent

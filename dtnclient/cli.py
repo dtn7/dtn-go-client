@@ -4,12 +4,14 @@ import argparse
 import logging
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from dtnclient.client import (
     DataError,
     DTNDError,
     create_bundle,
+    fetch_bundle,
     list_bundles,
     register_unregister,
 )
@@ -112,6 +114,40 @@ def _cli_list(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _cli_fetch_single(args: argparse.Namespace) -> None:
+    try:
+        bundle = fetch_bundle(
+            socket_path=args.socket,
+            mailbox=args.mailbox,
+            bundle_id=args.bundle_id,
+            delete=args.delete,
+        )
+
+        if args.filename:
+            with open(args.filename, "wb") as f:
+                f.write(bundle.Payload)
+            logging.info("success")
+        else:
+            print(bundle.Payload)
+
+    except FileNotFoundError:
+        logging.error("Could not connect to agent socket")
+        sys.exit(1)
+    except DataError as err:
+        logging.error(f"Error communicating with dtnd: {err}")
+        sys.exit(1)
+    except DTNDError as err:
+        logging.error(f"dtnd responded with error: {err}")
+        sys.exit(1)
+    except Exception as err:
+        logging.error(f"Generic error: {err}")
+        sys.exit(1)
+
+
+def _cli_fetch_all(args: argparse.Namespace) -> None:
+    pass
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Interact with dtnd")
 
@@ -186,6 +222,36 @@ def main() -> None:
     )
     list_parser.add_argument(
         "-n", "--new", action="store_true", help="Only list new bundles"
+    )
+
+    fetch_parser = subparsers.add_parser(name="fetch", help="Fetch bundles from store")
+    fetch_parser.set_defaults(run=_cli_no_command)
+    fetch_parser.add_argument("mailbox", type=EID, help="Fetch from this mailbox")
+    fetch_parser.add_argument(
+        "-d", "--delete", action="store_true", help="Delete bundle after fetching"
+    )
+    fetch_subparsers = fetch_parser.add_subparsers()
+
+    fetch_single = fetch_subparsers.add_parser(
+        name="single", help="Fetch single bundle by BundleID"
+    )
+    fetch_single.set_defaults(run=_cli_fetch_single)
+    fetch_single.add_argument("bundle_id", help="BundleID to fetch")
+    fetch_single.add_argument(
+        "-f",
+        "--filename",
+        required=False,
+        help="Filename to write bundle payload to. If unset, will print ot stdout",
+    )
+
+    fetch_all = fetch_subparsers.add_parser(name="all", help="Fetch all bundles")
+    fetch_all.set_defaults(run=_cli_fetch_all)
+    fetch_single.add_argument(
+        "-d",
+        "--directory",
+        required=False,
+        type=Path,
+        help="Directory to write bundle payloads to. Will use BundleIDs as filenames. If unset, will use current directory.",
     )
 
     args = parser.parse_args()

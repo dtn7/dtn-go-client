@@ -286,8 +286,8 @@ class FetchAllBundlesResponse(Response):
 @dataclass(frozen=True)
 class BundleContent:
     BundleID: str
-    Source: EID
-    Destination: EID
+    SourceID: EID
+    DestinationID: EID
     Payload: bytes = b""
 
     def dictify(self) -> dict:
@@ -296,8 +296,8 @@ class BundleContent:
 
     @classmethod
     def from_dict(cls, data: dict) -> BundleContent:
-        data["source"] = EID(data["source"])
-        data["destination"] = EID(data["destination"])
+        data["SourceID"] = EID(data["SourceID"])
+        data["DestinationID"] = EID(data["DestinationID"])
 
         return cls(**data)
 
