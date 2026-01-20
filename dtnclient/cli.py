@@ -11,6 +11,7 @@ from dtnclient.client import (
     DataError,
     DTNDError,
     create_bundle,
+    fetch_all_bundles,
     fetch_bundle,
     list_bundles,
     register_unregister,
@@ -80,8 +81,8 @@ def _cli_create(args: argparse.Namespace) -> None:
         bundle_id = create_bundle(socket_path=args.socket, args=bundle_args)
 
         logging.info(bundle_id)
-    except FileNotFoundError:
-        logging.error("Could not connect to agent socket")
+    except FileNotFoundError as err:
+        logging.error(err)
         sys.exit(1)
     except DataError as err:
         logging.error(f"Error communicating with dtnd: {err}")
@@ -123,15 +124,15 @@ def _cli_fetch_single(args: argparse.Namespace) -> None:
             delete=args.delete,
         )
 
-        if args.filename:
+        if hasattr(args, "filename") and args.filename:
             with open(args.filename, "wb") as f:
                 f.write(bundle.Payload)
             logging.info("success")
         else:
             print(bundle.Payload)
 
-    except FileNotFoundError:
-        logging.error("Could not connect to agent socket")
+    except FileNotFoundError as err:
+        logging.error(err)
         sys.exit(1)
     except DataError as err:
         logging.error(f"Error communicating with dtnd: {err}")
@@ -145,7 +146,38 @@ def _cli_fetch_single(args: argparse.Namespace) -> None:
 
 
 def _cli_fetch_all(args: argparse.Namespace) -> None:
-    pass
+    try:
+        bundles = fetch_all_bundles(
+            socket_path=args.socket,
+            mailbox=args.mailbox,
+            new_only=args.new,
+            delete=args.delete,
+        )
+
+        prefix: Path
+        if hasattr(args, "directory") and args.directory:
+            prefix = args.directory
+            prefix.mkdir(parents=True, exist_ok=True)
+        else:
+            prefix = Path(".")
+
+        for bundle in bundles:
+            sanitized_name = bundle.BundleID.replace("/", "")
+            with open(prefix / sanitized_name, "wb") as f:
+                f.write(bundle.Payload)
+
+    except FileNotFoundError as err:
+        logging.error(err)
+        sys.exit(1)
+    except DataError as err:
+        logging.error(f"Error communicating with dtnd: {err}")
+        sys.exit(1)
+    except DTNDError as err:
+        logging.error(f"dtnd responded with error: {err}")
+        sys.exit(1)
+    except Exception as err:
+        logging.error(f"Generic error: {err}")
+        sys.exit(1)
 
 
 def main() -> None:
@@ -252,6 +284,9 @@ def main() -> None:
         required=False,
         type=Path,
         help="Directory to write bundle payloads to. Will use BundleIDs as filenames. If unset, will use current directory.",
+    )
+    fetch_all.add_argument(
+        "-n", "--new", action="store_true", help="Only fetch new bundles"
     )
 
     args = parser.parse_args()

@@ -175,7 +175,7 @@ def fetch_bundle(
 
     Args:
         socket_path: Path to dtnd's UNIX-application-agent-socket
-        mailbox: EndpointID of the mailbox that contains the bundle
+        mailbox: EndpointID of the mailbox that we want to fetch from
         bundle_id: String-representation of the bundle's ID
         delete: Whether the bundle should be deleted after fetching
 
@@ -201,3 +201,39 @@ def fetch_bundle(
         )
 
     return response.BundleContent
+
+
+def fetch_all_bundles(
+    socket_path: str, mailbox: EID, new_only: bool = False, delete: bool = False
+) -> list[BundleContent]:
+    """
+    Fetch one specific bundle fy its ID
+
+    Args:
+        socket_path: Path to dtnd's UNIX-application-agent-socket
+        mailbox: EndpointID of the mailbox that we want to fetch from
+        new_only: Whether we want to fetch all bundles, or only 'new' ones (a bundle is new if it hasn't been fetched before)
+        delete: Whether the bundles should be deleted after fetching
+
+    Returns:
+        List of BundleContent-objects representing the bundles
+
+    Raises:
+        FileNotFoundError: if socket_path does not resolve
+        DataError: if data received from dtnd is inconsistent
+        DTNDError: if dtnd's response indicated an error
+    """
+    message = FetchAllBundles(
+        Type=MessageType.FetchAllBundles, Mailbox=mailbox, New=new_only, Remove=delete
+    )
+
+    response = send_message(socket_path=socket_path, message=message)
+
+    if response.Error:
+        raise DTNDError(response.Error)
+    if not isinstance(response, FetchAllBundlesResponse):
+        raise DataError(
+            f"response should have been FetchAllBundlesResponse, was {type(response)}"
+        )
+
+    return response.Bundles
