@@ -12,8 +12,9 @@ class DTNDError(Exception):
     """dtnd's response indicated an error"""
 
 
-def send_message(socket_path: str, message: Message) -> Response:
+def _send_message(socket_path: str, message: Message) -> Response:
     """
+    Sends a message to dtnd and receives its response
 
     Args:
         socket_path: Path to dtnd's UNIX-application-agent-socket
@@ -97,7 +98,7 @@ def register_unregister(socket_path: str, eid: EID, register: bool = True) -> No
 
     message = RegisterUnregister(Type=operation, EndpointID=eid)
 
-    response = send_message(socket_path=socket_path, message=message)
+    response = _send_message(socket_path=socket_path, message=message)
 
     if response.Error:
         raise DTNDError(response.Error)
@@ -124,9 +125,10 @@ def create_bundle(socket_path: str, args: dict[str, Any]) -> str:
         DataError: if data received from dtnd is inconsistent
         DTNDError: if dtnd's response indicated an error
     """
+
     message = BundleCreate(Type=MessageType.BundleCreate, Args=args)
 
-    response = send_message(socket_path=socket_path, message=message)
+    response = _send_message(socket_path=socket_path, message=message)
 
     if response.Error:
         raise DTNDError(response.Error)
@@ -155,9 +157,10 @@ def list_bundles(socket_path: str, mailbox: EID, new_only: bool = False) -> list
         DataError: if data received from dtnd is inconsistent
         DTNDError: if dtnd's response indicated an error
     """
+
     message = ListBundles(Type=MessageType.ListBundles, Mailbox=mailbox, New=new_only)
 
-    response = send_message(socket_path=socket_path, message=message)
+    response = _send_message(socket_path=socket_path, message=message)
 
     if response.Error:
         raise DTNDError(response.Error)
@@ -187,11 +190,12 @@ def fetch_bundle(
         DataError: if data received from dtnd is inconsistent
         DTNDError: if dtnd's response indicated an error
     """
+
     message = FetchBundle(
         Type=MessageType.FetchBundle, Mailbox=mailbox, BundleID=bundle_id, Remove=delete
     )
 
-    response = send_message(socket_path=socket_path, message=message)
+    response = _send_message(socket_path=socket_path, message=message)
 
     if response.Error:
         raise DTNDError(response.Error)
@@ -223,11 +227,12 @@ def fetch_all_bundles(
         DataError: if data received from dtnd is inconsistent
         DTNDError: if dtnd's response indicated an error
     """
+
     message = FetchAllBundles(
         Type=MessageType.FetchAllBundles, Mailbox=mailbox, New=new_only, Remove=delete
     )
 
-    response = send_message(socket_path=socket_path, message=message)
+    response = _send_message(socket_path=socket_path, message=message)
 
     if response.Error:
         raise DTNDError(response.Error)

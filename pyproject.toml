@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dtnclient"
-version = "0.1"
+version = "0.2"
 description = "Python client for dtn7-go"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 license = "MIT"
 authors = [
     { name = "Markus Sommer", email = "msommer@informatik.uni-marburg.de" },
@@ -21,9 +21,9 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
 
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
 
